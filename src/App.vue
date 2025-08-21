@@ -1,35 +1,34 @@
 <script setup lang="ts">
+import axios from "axios";
 import TopBar from "./components/TopBar.vue";
 import { useFileDialog } from "@vueuse/core";
+import { API_URL } from "../enviroments";
+import { v4 as uuidv4 } from "uuid";
+import { ref } from "vue";
 
 const { files, open, reset, onCancel, onChange } = useFileDialog({
   directory: false,
 });
 
-onChange((files) => {
+const images = ref([]);
+
+onChange(async (files) => {
   if (!files || files.length === 0) {
     return;
   }
 
+  let id = uuidv4();
   let formData = new FormData();
   formData.append("file", files?.[0]);
+  formData.append("sessionId", id);
 
-  fetch("http://localhost:4040/image", {
-    method: "POST",
-    body: formData,
-  })
-    .then((response) => {
-      if (response.ok && response.status === 200) {
-        reset();
-        alert("Upload realizado com sucesso");
-      } else {
-        throw new Error(`Falha no upload. Status: ${response.status}`);
-      }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      alert("Erro ao subir a imagem.");
-    });
+  const result = await axios.post(API_URL + `/image`, formData);
+
+  if (result.status == 200) {
+    debugger;
+    const resultImages = await axios.get(API_URL + `/image?sessionId=${id}`);
+    images.value = resultImages.data;
+  }
 });
 
 onCancel(() => {});
@@ -49,6 +48,10 @@ onCancel(() => {});
     >
       Subir Imagem
     </button>
+    <ol>
+      <li>Teste</li>
+      <li v-for="x in images">{{ x.url }}</li>
+    </ol>
   </div>
 </template>
 
