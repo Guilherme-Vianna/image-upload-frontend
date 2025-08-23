@@ -33,6 +33,7 @@ const { state, execute, isLoading } = useAsyncState(loadImages, null, {
   immediate: false,
 });
 
+// TODO: Revisar localstorage
 onChange(async (files) => {
   if (!files || files.length === 0) {
     return;
@@ -79,11 +80,12 @@ function copyLink(url) {
       Adicionar Imagem
     </button>
     <ol
-      class="flex flex-col min-w-4/12 bg-green-800 rounded-xl p-5 mt-12 text-white font-bold gap-12"
+      class="flex flex-col min-w-4/12 bg-green-800 rounded-xl p-5 mt-12 text-white font-bold gap-12 max-h-120 overflow-y-auto"
     >
       <div v-if="isLoading">Carregando Imagens...</div>
       <li v-for="x in images">
         <div class="flex justify-between items-center gap-5 sm:px-5">
+          <img :src="x.url" :width="120" class="border-1 border-green-950 shadow-2xl p-1 hidden md:block"></img>
           <a class="max-w-5/12">
             {{
               x.url.slice(useWindowSize().width.value < 450 ? 75 : 62, Infinity)
