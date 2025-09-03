@@ -1,5 +1,8 @@
-import { createApp } from "vue";
+import {createApp} from "vue";
 import App from "./App.vue";
 import "./index.css";
+import VueCookies from "vue-cookies";
 
-createApp(App).mount("#app");
+const app = createApp(App);
+app.use(VueCookies);
+app.mount("#app");

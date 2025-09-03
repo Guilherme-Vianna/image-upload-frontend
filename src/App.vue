@@ -1,106 +1,45 @@
 <script setup lang="ts">
-import axios from "axios";
 import TopBar from "./components/TopBar.vue";
-import {
-  notNullish,
-  useAsyncState,
-  useClipboard,
-  useFileDialog,
-  useLocalStorage,
-  useWindowSize,
-} from "@vueuse/core";
-import { API_URL } from "../enviroments";
-import { v4 as uuidv4 } from "uuid";
-import { ref } from "vue";
+import ImageContainer from "./components/ImageContainer.vue";
+import {useFileDialog, useMounted} from "@vueuse/core";
+import {v4} from "uuid";
 
-const { files, open, reset, onCancel, onChange } = useFileDialog({
+const {files, open, reset, onCancel, onChange} = useFileDialog({
   directory: false,
 });
 
-const images = ref([]);
-
-async function loadImages() {
-  const sessionId = localStorage.getItem("sessionId");
-  if (sessionId == null) useLocalStorage("sessionId", uuidv4());
-
-  const resultImages = await axios.get(
-    API_URL + `/image?sessionId=${sessionId}`
-  );
-  images.value = resultImages.data;
-}
-
-const { state, execute, isLoading } = useAsyncState(loadImages, null, {
-  immediate: false,
-});
-
-// TODO: Revisar localstorage
-onChange(async (files) => {
-  if (!files || files.length === 0) {
-    return;
-  }
-  const sessionId = localStorage.getItem("sessionId");
-  if (sessionId == null) {
-    console.error("SessionId not found");
-  }
-
-  let formData = new FormData();
-  formData.append("file", files?.[0]);
-  formData.append("sessionId", sessionId);
-
-  const result = await axios.post(API_URL + `/image`, formData);
-
-  if (result.status == 200) {
-    execute();
-  }
-});
-
-execute();
-
-onCancel(() => {});
-
-const { copy } = useClipboard();
-function copyLink(url) {
-  copy(url);
-  alert("Link Copiado");
-}
 </script>
 
 <template>
-  <TopBar />
-  <div class="flex flex-col px-10 py-8 items-center">
-    <div class="text-4xl font-bold">
+  <TopBar/>
+  <div class="flex flex-col items-center px-6 sm:px-10 py-10">
+    <div class="text-3xl sm:text-4xl font-extrabold text-gray-800 text-center">
       Suba qualquer imagem de qualquer tamanho!
     </div>
-    <div class="text-2xl">Compartilhe com o link curto</div>
+    <div class="text-lg sm:text-2xl text-gray-600 mt-2 text-center">
+      Compartilhe com o link curto
+    </div>
+
     <button
-      type="button"
-      @click="open()"
-      class="mt-20 bg-green-900 p-5 px-10 rounded-sm text-white shadow-2xl cursor-pointer"
+        type="button"
+        @click="reset(); open()"
+        class="mt-12 bg-green-700 hover:bg-green-800 transition-colors duration-300
+             px-8 py-4 rounded-xl text-white font-semibold shadow-lg
+             active:scale-95 focus:ring-4 focus:ring-green-400"
     >
       Adicionar Imagem
     </button>
-    <ol
-      class="flex flex-col min-w-4/12 bg-green-800 rounded-xl p-5 mt-12 text-white font-bold gap-12 max-h-120 overflow-y-auto"
+
+    <div
+        class="w-full max-w-3xl h-72 overflow-y-auto mt-10 p-5 rounded-2xl border border-gray-200
+             shadow-md bg-white/80 backdrop-blur-sm"
     >
-      <div v-if="isLoading">Carregando Imagens...</div>
-      <li v-for="x in images">
-        <div class="flex justify-between items-center gap-5 sm:px-5">
-          <img :src="x.url" :width="120" class="border-1 border-green-950 shadow-2xl p-1 hidden md:block"></img>
-          <a class="max-w-5/12">
-            {{
-              x.url.slice(useWindowSize().width.value < 450 ? 75 : 62, Infinity)
-            }}
-          </a>
-          <button
-            class="p-2 bg-white rounded-sm text-green-800 cursor-pointer"
-            @click="copyLink(x.url)"
-          >
-            Copiar Link
-          </button>
-        </div>
-      </li>
-    </ol>
+      <div class="flex flex-col gap-4">
+        <ImageContainer v-for="image in files" :key="v4()" :image="image"/>
+      </div>
+    </div>
   </div>
 </template>
+
 
 <style></style>
