@@ -1,5 +1,5 @@
 export enum ELoadingStatus {
     LOADING,
-    SUCESS,
+    SUCCESS,
     ERROR,
 }
