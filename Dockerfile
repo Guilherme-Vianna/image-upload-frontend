@@ -1,20 +1,20 @@
-# Stage 1: Build the Vue app
-FROM node:22-alpine AS build-stage
+# Stage 1: Build the Vue app using Bun
+FROM oven/bun:1-alpine AS build-stage
 
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (or pnpm-lock.yaml/yarn.lock)
-COPY package*.json ./
+# Copy package.json and bun.lockb (if exists)
+COPY package.json bun.lockb* ./
 
-# Install dependencies
-RUN npm install
+# Install dependencies using Bun
+RUN bun install
 
 # Copy the rest of the source code
 COPY . .
 
 # Build the app for production
-RUN npm run build
+RUN bun run build
 
 # Stage 2: Serve the app with Nginx
 FROM nginx:stable-alpine AS production-stage
@@ -22,11 +22,11 @@ FROM nginx:stable-alpine AS production-stage
 # Copy built assets from build-stage
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-# Copy custom Nginx config if needed (optional)
+# Optional: copy custom Nginx config
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
 EXPOSE 80
 
-# Start Nginx server
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
